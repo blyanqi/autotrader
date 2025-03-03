@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>股票信息表格</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="show" hidden></div>
+    <table>
+        <tr>
+            <th>序号</th>
+            <th>代码</th>
+            <th>名称</th>
+            <th>最新价</th>
+            <th>涨跌幅</th>
+            <!-- <th>涨跌额</th>
+            <th>成交量</th>
+            <th>成交额</th>
+            <th>振幅</th>
+            <th>最高</th>
+            <th>最低</th>
+            <th>今开</th>
+            <th>昨收</th> -->
+            <th>量比</th>
+            <th>换手率</th>
+            <!-- <th>市盈率-动态</th>
+            <th>市净率</th>
+            <th>总市值</th>
+            <th>流通市值</th>
+            <th>涨速</th>
+            <th>5分钟涨跌</th> -->
+            <th>60日涨跌幅</th>
+            <th>年初至今涨跌幅</th>
+        </tr>
+        {% for item in stocks %}
+        <tr>
+            <td>{{item["序号"]}}</td>
+            <td class="code">{{item["代码"]}}</td>
+            <td>{{item["名称"]}}</td>
+            <td>{{item["最新价"]}}</td>
+            <td>{{item["涨跌幅"]}}%</td>
+            <!-- <td>42.26</td>
+            <td>135171.0</td>
+            <td>1.03062156184e+09</td>
+            <td>52.67%</td>
+            <td>83.8</td>
+            <td>68.88</td>
+            <td>80.0</td>
+            <td>28.33</td> -->
+            <td>{{item["量比"]}}</td>
+            <td>{{item["换手率"]}}%</td>
+            <!-- <td>36.39</td>
+            <td>4.52</td>
+            <td>6.200256555e+09</td>
+            <td>1.190283145e+09</td>
+            <td>0.0</td>
+            <td>-0.17%</td> -->
+            <td>{{item["60日涨跌幅"]}}%</td>
+            <td>{{item["年初至今涨跌幅"]}}%</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <script>
+        var element = document.getElementsByClassName("code")[3];
+
+        element.addEventListener('mouseover', function (event) {
+            stockCode = event.target.innerHTML
+            // 获取鼠标位置
+            var x = event.offsetX;
+            var y = event.offsetY;
+
+            if (/^0/.test(stockCode)) {
+                ncode = "sz" + stockCode
+            } else if (/^6/.test(stockCode)) {
+                ncode = "sh" + stockCode
+            } else if (/^3/.test(stockCode)) {
+                ncode = "sz" + stockCode
+            } else if (/^8/.test(stockCode)) {
+                ncode = "bj" + stockCode
+            } else if (/^9/.test(stockCode)) {
+                ncode = "bj" + stockCode
+            }
+            parent.document.getElementById("show").style.position = "relative";
+            document.getElementById("show").style.top = y + "px";
+            document.getElementById("show").style.left = x + "px";
+            document.getElementById("show").style.display = "float";
+            document.getElementById("show").innerHTML = `<img src="http://image.sinajs.cn/newchart/min/n/${ncode}.gif" width="320px"></img>`
+            document.getElementById("show").innerHTML += `<img src="http://image.sinajs.cn/newchart/daily/n/${ncode}.gif" width="320px"></img>`
+            document.getElementById("show").innerHTML += `<img src="http://image.sinajs.cn/newchart/weekly/n/${ncode}.gif" width="320px"></img>`
+            document.getElementById("show").innerHTML += `<img src="http://image.sinajs.cn/newchart/monthly/n/${ncode}.gif" width="320px"></img>`
+            document.getElementById("show").hidden = false;
+        });
+        element.addEventListener('mousemove', function (event) {
+            document.getElementById("show").hidden = true;
+        }
+    </script>
+</body>
+
+</html>
