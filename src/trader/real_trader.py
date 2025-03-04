@@ -1,9 +1,42 @@
+import os
 from trader.trader_inf import TraderInf
+import psutil
+
+curDir = os.getcwd()
+
+
+def is_application_running(app_name):
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            # print(app_name, proc)
+            if app_name.lower() in proc.info['name'].lower():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return False
+
+
+def kill_application(app_name):
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            if app_name.lower() in proc.info['name'].lower():
+                proc.terminate()  # 发送终止信号
+                proc.wait(timeout=5)  # 等待进程退出
+                print(
+                    f"Process {proc.info['name']} (PID: {proc.info['pid']}) has been terminated.")
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired) as e:
+            print(f"Failed to terminate process: {e}")
 
 
 class RealTrader(TraderInf):
     def __init__(self):
-        pass
+        self.app_name = "jy"
+
+    def login(self):
+        if is_application_running(self.app_name):
+            return
+        return os.system(
+            f"""osascript {curDir}/trader/autoscpt/real/fy_login.applescript""")
 
     def balance(self):
         return "real balance"
@@ -12,7 +45,15 @@ class RealTrader(TraderInf):
         return "real position"
 
     def buy(self, code):
-        return f"real buy {code}"
+        self.login()
+        if is_application_running(self.app_name):
+            return os.system(
+                f"""osascript {curDir}/trader/autoscpt/real/fy_buy.applescript {code} 100""")
 
     def sell(self, code):
         return f"real sell {code}"
+
+
+if __name__ == "__main__":
+    trader = RealTrader()
+    print(trader.buy("000001"))

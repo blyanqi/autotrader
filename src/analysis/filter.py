@@ -5,53 +5,53 @@ import datetime
 
 
 class Filter:
-    def __init__(self, traderExec):
+    def __init__(self):
         self.currentDir = os.path.dirname(__file__)
-        self.buyList = []
-        self.traderExec = traderExec
 
     def get_today(self):
         today = datetime.datetime.now().strftime("%Y%m%d")
         return today
 
+    def get_yestoday(self):
+        yestoday = (datetime.datetime.now() -
+                    datetime.timedelta(days=1)).strftime("%Y%m%d")
+        return yestoday
+
     def filter_data(self):
         df = pd.read_csv(
-            f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
+            f"{self.currentDir}/../data/real_data{self.get_yestoday()}.csv", dtype={"代码": str})
         fdf = df[df["涨跌幅"] > 9]["代码"]
         fdf.to_csv(
             f"{self.currentDir}/../data/filter_rate{self.get_today()}.csv", index=False)
 
-    def filter_buy_stock(self):
-        print("filter buy stock")
+    def filter_top_with_rate_turnover(self, min_rate, max_rate, turnover, filename):
         df = pd.read_csv(
-            f"{self.currentDir}/../data/filter_rate{self.get_today()}.csv", dtype={"代码": str})
+            f"{self.currentDir}/../data/filter_rate{self.get_yestoday()}.csv", dtype={"代码": str})
         alldf = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
         filterDf = pd.merge(df, alldf, on="代码")
         # print(filterDf)
-        filterDf = filterDf[(filterDf["换手率"] > 30) & (
-            filterDf["涨跌幅"] < 5) & (filterDf["涨跌幅"] > 2)]
+        filterDf = filterDf[(filterDf["换手率"] >= min_rate) & (
+            filterDf["涨跌幅"] <= max_rate) & (filterDf["涨跌幅"] >= turnover)]
         filterDf.to_csv(
-            f"{self.currentDir}/../data/filter_buy_stock{self.get_today()}.csv", index=False)
+            f"{self.currentDir}/../data/{filename}.csv", index=False)
 
-    def trader_filter_stock(self, trader):
+    def filter_with_turnover(self, min_rate, max_rate, turnover, filename):
         df = pd.read_csv(
-            f"{self.currentDir}/../data/filter_buy_stock{self.get_today()}.csv", dtype={"代码": str})
-        if df["代码"].empty:
-            return
-        codes = df["代码"]
-        # print(df["代码"])
-        for code in codes:
-            if code in self.buyList:  # 防止重复购买
-                return
-            if len(self.buyList) > 3:  # 购买股票数量限制
-                return
-            print(code)
-            self.buyList.append(code)
-            print(self.traderExec(trader).buy(code))
-            time.sleep(20)
+            f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
+        fdf = df[(df["涨跌幅"] > min_rate) & (df["涨跌幅"] < max_rate)
+                 & (df["换手率"] > turnover)]
+        fdf.to_csv(
+            f"{self.currentDir}/../data/{filename}.csv", index=False)
+
+    def test_filter(self):
+        df = pd.read_csv(
+            f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
+        fdf = df[(df["涨跌幅"] > 2) & (df["涨跌幅"] < 5)
+                 & (df["换手率"] > 20)]
+        return fdf[["代码", "名称", "涨跌幅", "换手率"]]
 
 
 if __name__ == '__main__':
-    filter = Filter(None)
-    filter.filter_data()
+    filter = Filter()
+    print(filter.test_filter())
