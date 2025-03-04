@@ -1,14 +1,16 @@
+# python 自动化交易系统
 
-获取数据
-分析数据
-输出数据
-执行交易
-分析交易结果
+* 获取数据
+* 分析数据
+* 输出数据
+* 执行交易
+* 分析交易结果
 
 ```sh
 python -m venv .venv
 pip install --upgrade pip
 ```
+## 安装依赖包
 
 ### akshare
 https://akshare.akfamily.xyz/data/stock/stock.html#id10
@@ -30,7 +32,11 @@ https://jinja.palletsprojects.com/en/stable/templates/
 ### APScheduler
 `pip install apscheduler`
 
+### psutil
+`pip install psutil`
 
+
+## 目录结构
 ```sh
 .
 ├── __init__.py
@@ -50,12 +56,12 @@ https://jinja.palletsprojects.com/en/stable/templates/
 │   └── real_data_sh20250303.csv
 ├── entity # 实体
 │   └── trader_entity.py
-├── main.py
-├── policy # 策略
+├── main.py # 主程序
+├── policy  # 策略
 │   └── policy.py
 ├── seek # 获取数据
 │   └── seek_akshare.py
-├── server.py
+├── server.py # web 展示程序
 ├── task # 定时任务
 │   └── task.py
 ├── templates
@@ -64,10 +70,20 @@ https://jinja.palletsprojects.com/en/stable/templates/
 └── trader # 交易
     ├── __init__.py
     ├── autoscpt
-    │   ├── mock
-    │   └── real
+    │   ├── mock  # 模拟交易
+    │   └── real  # 真实交易
     ├── mock_trader.py
     ├── real_trader.py
-    ├── trader_exec.py
-    └── trader_inf.py
+    ├── trader_exec.py # 交易执行
+    └── trader_inf.py # 交易接口
 ```
+
+### 流程
+* 获取即时数据
+* 对数据进行过滤
+* 执行策略对过滤后的数据进行筛选
+* 执行交易
+> 获取数据是通过定时任务获取，定时任务通过apscheduler实现。
+> 对数据进行过滤确定哪些数据是符合策略的，然后对符合策略的数据进行筛选。
+> 策略主要负责在不同的时间段对指标进行筛选，比如在9:30-11:30和13:00-15:00的时间段对数据进行筛选。
+> 交易主要负责对筛选后的数据进行交易，比如对筛选后的数据进行买入和卖出。
