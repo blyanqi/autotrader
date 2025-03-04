@@ -3,7 +3,7 @@ on run argv
     set Code to item 1 of argv
     set Num to item 2 of argv
     tell application "Keyboard Maestro Engine" 
-        activate
+        -- activate
         do script "2230482C-98F9-45AF-BB9E-5DCE89D6C046" with parameter Code & ", " & Num
     end tell
 end run

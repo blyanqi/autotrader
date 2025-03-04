@@ -1,4 +1,5 @@
 import os
+import subprocess
 from trader.trader_inf import TraderInf
 import psutil
 
@@ -48,12 +49,23 @@ class RealTrader(TraderInf):
         self.login()
         if is_application_running(self.app_name):
             return os.system(
-                f"""osascript {curDir}/trader/autoscpt/real/fy_buy.applescript {code} 100""")
+                f"""osascript {curDir}/trader/autoscpt/real/fy_buy_rr.applescript {code} 100""")
 
     def sell(self, code):
-        return f"real sell {code}"
+        self.login()
+        if is_application_running(self.app_name):
+            return os.system(
+                f"""osascript {curDir}/trader/autoscpt/real/fy_sell_rr.applescript {code} 100""")
+
+    def hold(self):
+        self.login()
+        if is_application_running(self.app_name):
+            result = subprocess.run(
+                ['osascript', f"""{curDir}/trader/autoscpt/real/fy_hold.applescript"""], text=True, capture_output=True)
+            km_output = result.stdout.strip()
+            return km_output
 
 
 if __name__ == "__main__":
     trader = RealTrader()
-    print(trader.buy("000001"))
+    print(trader.hold())

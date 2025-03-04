@@ -1,4 +1,5 @@
 import datetime
+import math
 import os
 import time
 
@@ -57,7 +58,13 @@ class TraderExec:
             print("trader: ", code)
             self._buyList.append(code)
             print(self.buy(code))
-            time.sleep(20)
+            time.sleep(5)
+
+    def hold(self):
+        holdstock = self._trader.hold()
+        holdstock = holdstock.replace(",", "")
+        stockList = holdstock.split("\n")
+        print(stockList)
 
 
 if __name__ == '__main__':

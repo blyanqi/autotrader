@@ -13,8 +13,9 @@ if __name__ == '__main__':
     traderExec = TraderExec(trader)
     filter = Filter()
     policy = Policy(filter)
+    # print(traderExec.sell("000001"))
     task.create_task(seek.real_data, 10)
     task.create_task(policy.top_rate_turnover_policy_day, 15)
-    # task.create_task(traderExec.trader_stock, 20,
-    #                  args=[policy.policy["rate_turnover_curday"]["name"]])
+    task.create_task(traderExec.trader_stock, 20,
+                     args=[policy.policy["rate_turnover_curday"]["name"]])
     task.start_task()

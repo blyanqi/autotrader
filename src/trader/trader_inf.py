@@ -20,5 +20,9 @@ class TraderInf(ABC):
     def sell(self, code):
         pass
 
+    @abstractmethod
+    def hold(self):
+        pass
+
     def get_today(self):
         return datetime.datetime.now().strftime('%Y%m%d')
