@@ -6,16 +6,43 @@ from trader.mock_trader import MockTrader
 from task.task import Task
 from seek.seek_akshare import Seek
 
-if __name__ == '__main__':
+
+def rate_turnover_policy(isTrader=False):
     task = Task()
     seek = Seek()
     trader = RealTrader()
     traderExec = TraderExec(trader)
     filter = Filter()
     policy = Policy(filter)
-    # print(traderExec.sell("000001"))
+    task.create_task(seek.real_data, 10)
+    task.create_task(policy.top_rate_turnover_policy, 15)
+    if isTrader:
+        task.create_task(traderExec.trader_stock, 20,
+                         args=[policy.policy["rate_turnover"]["name"]])
+    task.start_task()
+
+
+def rate_turnover_policy_day(isTrader=False):
+    task = Task()
+    seek = Seek()
+    trader = RealTrader()
+    traderExec = TraderExec(trader)
+    filter = Filter()
+    policy = Policy(filter)
     task.create_task(seek.real_data, 10)
     task.create_task(policy.top_rate_turnover_policy_day, 15)
-    task.create_task(traderExec.trader_stock, 20,
-                     args=[policy.policy["rate_turnover_curday"]["name"]])
+    if isTrader:
+        task.create_task(traderExec.trader_stock, 20,
+                         args=[policy.policy["rate_turnover_curday"]["name"]])
     task.start_task()
+
+
+def test():
+    trader = RealTrader()
+    traderExec = TraderExec(trader)
+    print(traderExec.sell("000001"))
+
+
+if __name__ == '__main__':
+    rate_turnover_policy()
+    pass

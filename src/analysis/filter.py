@@ -17,12 +17,12 @@ class Filter:
                     datetime.timedelta(days=1)).strftime("%Y%m%d")
         return yestoday
 
-    def filter_data(self):
+    def filter_data(self, inDate):
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_yestoday()}.csv", dtype={"代码": str})
         fdf = df[df["涨跌幅"] > 9]["代码"]
         fdf.to_csv(
-            f"{self.currentDir}/../data/filter_rate{self.get_today()}.csv", index=False)
+            f"{self.currentDir}/../data/filter_rate{inDate}.csv", index=False)
 
     def filter_top_with_rate_turnover(self, min_rate, max_rate, turnover, filename):
         df = pd.read_csv(
@@ -40,7 +40,7 @@ class Filter:
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
         fdf = df[(df["涨跌幅"] > min_rate) & (df["涨跌幅"] < max_rate)
-                 & (df["换手率"] > turnover)]
+                 & (df["换手率"] > turnover) & (df["60日涨跌幅"] < 30)]
         fdf.to_csv(
             f"{self.currentDir}/../data/{filename}.csv", index=False)
 
@@ -54,4 +54,5 @@ class Filter:
 
 if __name__ == '__main__':
     filter = Filter()
-    print(filter.test_filter())
+    # print(filter.get_yestoday())
+    print(filter.filter_data(filter.get_yestoday()))
