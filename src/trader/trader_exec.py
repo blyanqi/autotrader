@@ -49,7 +49,6 @@ class TraderExec:
         if df["代码"].empty:
             return
         codes = df["代码"]
-        # print(df["代码"])
         for code in codes:
             if code in self._buyList:  # 防止重复购买
                 return
@@ -58,13 +57,32 @@ class TraderExec:
             print("trader: ", code)
             self._buyList.append(code)
             print(self.buy(code))
-            time.sleep(5)
+
+    def trader_stock_with_min(self, policyName, filter, seek):
+        df = pd.read_csv(
+            f"{self.currentDir}/../data/{policyName}{self.get_today()}_{self.get_timezone()}.csv", dtype={"代码": str})
+        if df["代码"].empty:
+            return
+        codes = df["代码"]
+        for code in codes:
+            if not filter.filter_stock_intraday_min(code, seek):
+                continue
+            if code in self._buyList:  # 防止重复购买
+                return
+            if len(self._buyList) >= 3:  # 购买股票数量限制
+                return
+            print("trader: ", code)
+            self._buyList.append(code)
+            print(self.buy(code))
 
     def hold(self):
+        print("get hold stock")
         holdstock = self._trader.hold()
         holdstock = holdstock.replace(",", "")
-        stockList = holdstock.split("\n")
-        print(stockList)
+        stockInfo = holdstock.split("\n")
+        stockList = stockInfo[:5]
+        stockRate = stockInfo[5:]
+        return [stockList, stockRate]
 
 
 if __name__ == '__main__':

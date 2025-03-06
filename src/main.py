@@ -37,12 +37,51 @@ def rate_turnover_policy_day(isTrader=False):
     task.start_task()
 
 
+def rate_volumnrate_policy_day(isTrader=False):
+    task = Task()
+    seek = Seek()
+    trader = RealTrader()
+    traderExec = TraderExec(trader)
+    filter = Filter()
+    policy = Policy(filter)
+    task.create_task(seek.real_data, 10)
+    task.create_task(policy.top_volumerate_day, 15)
+    if isTrader:
+        task.create_task(traderExec.trader_stock, 20,
+                         args=[policy.policy["top_volumerate"]["name"]])
+    task.start_task()
+
+
+def sell_operator(rate):
+    trader = RealTrader()
+    traderExec = TraderExec(trader)
+    stockHold = traderExec.hold()
+    print(stockHold)
+    count = 0
+    for item in stockHold[1]:
+        print(item)
+        if item:
+            if float(item) > rate:
+                traderExec.sell(stockHold[0][count])
+            count += 1
+    pass
+
+
 def test():
     trader = RealTrader()
     traderExec = TraderExec(trader)
-    print(traderExec.sell("000001"))
+    print(traderExec.sell("002276"))
+
+
+def test2():
+    seek = Seek()
+    filter = Filter()
+    print(filter.filter_stock_intraday_min("000001", seek))
 
 
 if __name__ == '__main__':
-    rate_turnover_policy()
+    # rate_turnover_policy_day()
+    # test()
+    # sell_operator(5)
+    rate_volumnrate_policy_day()
     pass

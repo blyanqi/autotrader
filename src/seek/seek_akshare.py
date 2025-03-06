@@ -59,10 +59,17 @@ class Seek:
         df.to_csv(
             f"{self.currentDir}/../data/hd_day{self.get_today()}.csv", index=False)
 
+    def stock_intraday_em(self, code):
+        df = ak.stock_intraday_em(symbol=code)
+        df.to_csv(
+            f"{self.currentDir}/../data/intraday{self.get_today()}.csv", index=False)
+        return df
+
 
 if __name__ == '__main__':
     seek = Seek()
-    seek.real_data()
-    seek.real_data_with_bj()
-    seek.real_data_with_sh()
-    seek.real_data_with_se()
+    seek.stock_intraday_em("000001")
+    # seek.real_data()
+    # seek.real_data_with_bj()
+    # seek.real_data_with_sh()
+    # seek.real_data_with_se()

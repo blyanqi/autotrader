@@ -12,19 +12,25 @@ class Policy():
             "rate_turnover_curday": {
                 "name": "rate_turnover_curday",
                 "desc": "根据换手率过滤，涨幅在一定区间类的个股。依据是高换手意味着人气高。"
+            },
+            "top_volumerate": {
+                "name": "top_volumerate",
+                "desc": "根据量比过滤，涨幅在一定区间类的个股。依据是高量比意味着交易量大。"
             }
         }
         self.time_zone = {
             "first": {
                 "start": datetime.time(9, 25),
                 "end": datetime.time(9, 35),
-                "turnover": 5,
+                "volumerate": 30,
+                "turnover": 2,
                 "min_rate": 2,
-                "max_rate": 5,
+                "max_rate": 8,
             },
             "second": {
                 "start": datetime.time(9, 36),
                 "end": datetime.time(9, 45),
+                "volumerate": 20,
                 "turnover": 10,
                 "min_rate": 2,
                 "max_rate": 5,
@@ -32,14 +38,16 @@ class Policy():
             "third": {
                 "start": datetime.time(9, 46),
                 "end": datetime.time(10, 00),
+                "volumerate": 15,
                 "turnover": 12,
                 "min_rate": 2,
                 "max_rate": 5,
             },
             "other": {
-                "turnover": 20,
-                "min_rate": 2,
-                "max_rate": 5,
+                "volumerate": 10,
+                "turnover": 30,
+                "min_rate": 3,
+                "max_rate": 7,
             }
         }
 
@@ -104,6 +112,28 @@ class Policy():
             self.filter.filter_with_turnover(
                 self.time_zone["other"]["min_rate"], self.time_zone["other"]["max_rate"],
                 self.time_zone["other"]["turnover"], filename)
+
+    def top_volumerate_day(self):
+        filename = self.policy["top_volumerate"]["name"] + \
+            self.get_today()
+        if self.get_time() <= self.time_zone["first"]["end"]:
+            filename += "_"+self.time_zone["first"]["end"].strftime("%H:%M")
+            self.filter.filter_with_volumerate(self.time_zone["first"]["min_rate"], self.time_zone["first"]["max_rate"],
+                                               self.time_zone["first"]["volumerate"], filename)
+            return
+        if self.get_time() <= self.time_zone["second"]["end"]:
+            filename += "_"+self.time_zone["second"]["end"].strftime("%H:%M")
+            self.filter.filter_with_volumerate(self.time_zone["second"]["min_rate"], self.time_zone["second"]["max_rate"],
+                                               self.time_zone["second"]["volumerate"], filename)
+            return
+        if self.get_time() <= self.time_zone["third"]["end"]:
+            filename += "_"+self.time_zone["third"]["end"].strftime("%H:%M")
+            self.filter.filter_with_volumerate(self.time_zone["third"]["min_rate"], self.time_zone["third"]["max_rate"],
+                                               self.time_zone["third"]["volumerate"], filename)
+        else:
+            filename += "_"+"other"
+            self.filter.filter_with_volumerate(self.time_zone["other"]["min_rate"], self.time_zone["other"]["max_rate"],
+                                               self.time_zone["other"]["volumerate"], filename)
 
 
 if __name__ == "__main__":

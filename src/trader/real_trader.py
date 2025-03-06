@@ -61,7 +61,7 @@ class RealTrader(TraderInf):
         self.login()
         if is_application_running(self.app_name):
             result = subprocess.run(
-                ['osascript', f"""{curDir}/trader/autoscpt/real/fy_hold.applescript"""], text=True, capture_output=True)
+                ['osascript', f"""{curDir}/trader/autoscpt/real/fy_hold_rr.applescript"""], text=True, capture_output=True)
             km_output = result.stdout.strip()
             return km_output
 
