@@ -42,7 +42,7 @@ def rate_volumnrate_policy_day(isTrader=False):
     seek = Seek()
     trader = RealTrader()
     traderExec = TraderExec(trader)
-    filter = Filter()
+    filter = Filter(seek)
     policy = Policy(filter)
     task.create_task(seek.real_data, 10)
     task.create_task(policy.top_volumerate_day, 15)

@@ -5,8 +5,9 @@ import datetime
 
 
 class Filter:
-    def __init__(self):
+    def __init__(self,seek):
         self.currentDir = os.path.dirname(__file__)
+        self.seek = seek
 
     def get_today(self):
         today = datetime.datetime.now().strftime("%Y%m%d")
@@ -45,13 +46,20 @@ class Filter:
         fdf.to_csv(
             f"{self.currentDir}/../data/{filename}.csv", index=False)
 
+    def is_valid(self,row):
+        # 如果出发地和目的地相同，则返回 False
+        return row['最新价'] > row['今开']
+
     def filter_with_volumerate(self, min_rate, max_rate, volumerate, filename):
+        fdf = pd.DataFrame()
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
         fdf = df[(df["涨跌幅"] > min_rate) & (df["涨跌幅"] < max_rate)
                  & (df["量比"] > volumerate)]
+        fdf = fdf[fdf.apply(self.is_valid, axis=1)]
         fdf.to_csv(
             f"{self.currentDir}/../data/{filename}.csv", index=False)
+        
 
     def filter_rate(self):
         df = pd.read_csv(
@@ -64,17 +72,16 @@ class Filter:
         filterDf.to_csv(
             f"{self.currentDir}/../data/filter_rate.csv", index=False)
 
-    def filter_stock_intraday_min(self, code, seek):
-        df = seek.stock_intraday_em(code)
-        if df.empty:
-            return
-        openPrice = df[df["时间"] == "09:30:00"]["成交价"].values[0]
-        currPrice = df.tail(1)[["成交价"]].values[0]
-        print(openPrice, currPrice)
-        if openPrice < currPrice:
-            return True
-        return False
-
+    def filter_stock_intraday_min(self, row):
+        try:
+            df = self.seek.stock_intraday_em(row["代码"])
+            filtered_df = df[df['时间'].str.startswith('09:30')]
+            openPrice = filtered_df.iloc[0]["成交价"]
+            currPrice = df.tail(1)[["成交价"]].values[0]
+            return openPrice < currPrice
+        except:
+            return False
+    
     def test_filter(self):
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
