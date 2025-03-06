@@ -55,7 +55,7 @@ class Filter:
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
         fdf = df[(df["涨跌幅"] > min_rate) & (df["涨跌幅"] < max_rate)
-                 & (df["量比"] > volumerate)]
+                 & (df["量比"] > volumerate)&(df["60日涨跌幅"] <= 55)]
         fdf = fdf[fdf.apply(self.is_valid, axis=1)]
         fdf.to_csv(
             f"{self.currentDir}/../data/{filename}.csv", index=False)
