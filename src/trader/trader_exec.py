@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import math
 import os
@@ -6,15 +7,21 @@ import time
 
 import pandas as pd
 
+from core.container import IoCContainer
 from trader.trader_inf import TraderInf
 
 
 class TraderExec:
     def __init__(self, trader: TraderInf):
         self.currentDir = os.path.dirname(__file__)
-        self._trader = trader
-        self.logger = logging.getLogger(__name__)
-        self._buyList = []
+        self._trader = trader  # 交易系统
+        self._amount = 20000    # 入市金额
+        self._buyList = {}      # 今日交易的股票池
+        self._holdtake = 2     # hold stock
+        self._bottle = 5        # 份额
+        self.isTrader = False
+        self.logger = logging.getLogger("trader_exec")
+        self.load_buy_list()
 
     def get_today(self):
         return datetime.datetime.now().strftime('%Y%m%d')
@@ -25,8 +32,8 @@ class TraderExec:
     def position(self):
         return self._trader.position()
 
-    def buy(self, code):
-        return self._trader.buy(code)
+    def buy(self, code, num):
+        return self._trader.buy(code, num)
 
     def sell(self, code):
         return self._trader.sell(code)
@@ -34,6 +41,22 @@ class TraderExec:
     def get_time(self):
         time = datetime.datetime.now().time()
         return time
+
+    def load_buy_list(self):
+        try:
+            self._buyList = json.load(open(
+                f"{self.currentDir}/../data/buyList_{self.get_today()}.json", "r"))
+        except Exception as e:
+            print(e)
+            pass
+
+    def add_buy_list(self, record):
+        try:
+            self._buyList[record["code"]] = record
+            json.dump(self._buyList, open(
+                f"{self.currentDir}/../data/buyList_{self.get_today()}.json", "w"))
+        except:
+            pass
 
     def get_timezone(self):
         if self.get_time() <= datetime.time(9, 35):
@@ -47,17 +70,21 @@ class TraderExec:
     def trader_stock(self, policyName):
         df = pd.read_csv(
             f"{self.currentDir}/../data/{policyName}{self.get_today()}_{self.get_timezone()}.csv", dtype={"代码": str})
-        if df["代码"].empty:
+        if df.empty:
             return
-        codes = df["代码"]
-        for code in codes:
-            if code in self._buyList:  # 防止重复购买
+        traderData = df.head(self._holdtake).to_dict(orient='records')
+        for row in traderData:
+            if len(self._buyList) >= self._holdtake:
                 return
-            if len(self._buyList) >= 3:  # 购买股票数量限制
-                return
-            self.logger.info("trader: ", code)
-            self._buyList.append(code)
-            self.logger.info(self.buy(code))
+            code = row["代码"]
+            if code in self._buyList:
+                continue
+            price = row["最新价"]
+            num = math.floor(self._amount/self._bottle/price/100)*100
+            self.logger.info("trader: ", code, price, num)
+            self.add_buy_list({"code": code, "price": price, "num": num})
+            if self.isTrader:
+                self.buy(code, num)
 
     def hold(self):
         print("get hold stock")

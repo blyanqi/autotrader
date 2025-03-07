@@ -1,8 +1,9 @@
-import logging
 import os
 import akshare as ak
 import pandas as pd
 import datetime
+
+from core.logger import Logger
 
 pd.options = {
 }
@@ -11,7 +12,7 @@ pd.options = {
 class Seek:
     def __init__(self):
         self.currentDir = os.path.dirname(__file__)
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger.get_logger("seek")
 
     def get_today(self):
         return datetime.datetime.now().strftime("%Y%m%d")

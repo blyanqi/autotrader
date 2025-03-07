@@ -35,6 +35,9 @@ https://jinja.palletsprojects.com/en/stable/templates/
 ### psutil
 `pip install psutil`
 
+### watchdog
+`pip install watchdog`
+
 
 ## 目录结构
 ```sh

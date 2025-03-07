@@ -1,9 +1,12 @@
 import datetime
 
+from core.logger import Logger
+
 
 class Policy():
     def __init__(self, filter):
         self.filter = filter
+        self.logger = Logger.get_logger("policy")
         self.policy = {
             "rate_turnover": {
                 "name": "rate_turnover",
@@ -26,6 +29,7 @@ class Policy():
                 "turnover": 2,
                 "min_rate": 2,
                 "max_rate": 7,
+                "day60rate": 55
             },
             "second": {
                 "start": datetime.time(9, 36),
@@ -34,6 +38,7 @@ class Policy():
                 "turnover": 10,
                 "min_rate": 2,
                 "max_rate": 5,
+                "day60rate": 40
             },
             "third": {
                 "start": datetime.time(9, 46),
@@ -42,12 +47,14 @@ class Policy():
                 "turnover": 12,
                 "min_rate": 2,
                 "max_rate": 5,
+                "day60rate": 30
             },
             "other": {
                 "volumerate": 5,
                 "turnover": 5,
                 "min_rate": 5,
-                "max_rate": 20,
+                "max_rate": 9,
+                "day60rate": 20
             }
         }
 
@@ -114,26 +121,38 @@ class Policy():
                 self.time_zone["other"]["turnover"], filename)
 
     def top_volumerate_day(self):
-        filename = self.policy["top_volumerate"]["name"] + \
-            self.get_today()
+        self.logger.info(f"use policy top_volumerate_day {self.get_time()}")
+        filename = self.policy["top_volumerate"]["name"] + self.get_today()
         if self.get_time() <= self.time_zone["first"]["end"]:
             filename += "_"+self.time_zone["first"]["end"].strftime("%H:%M")
-            self.filter.filter_with_volumerate(self.time_zone["first"]["min_rate"], self.time_zone["first"]["max_rate"],
-                                               self.time_zone["first"]["volumerate"], filename)
+            self.filter.filter_with_volumerate(self.time_zone["first"]["min_rate"],
+                                               self.time_zone["first"]["max_rate"],
+                                               self.time_zone["first"]["volumerate"],
+                                               self.time_zone["first"]["day60rate"],
+                                               filename)
             return
         if self.get_time() <= self.time_zone["second"]["end"]:
             filename += "_"+self.time_zone["second"]["end"].strftime("%H:%M")
-            self.filter.filter_with_volumerate(self.time_zone["second"]["min_rate"], self.time_zone["second"]["max_rate"],
-                                               self.time_zone["second"]["volumerate"], filename)
+            self.filter.filter_with_volumerate(self.time_zone["second"]["min_rate"],
+                                               self.time_zone["second"]["max_rate"],
+                                               self.time_zone["second"]["volumerate"],
+                                               self.time_zone["first"]["day60rate"],
+                                               filename)
             return
         if self.get_time() <= self.time_zone["third"]["end"]:
             filename += "_"+self.time_zone["third"]["end"].strftime("%H:%M")
-            self.filter.filter_with_volumerate(self.time_zone["third"]["min_rate"], self.time_zone["third"]["max_rate"],
-                                               self.time_zone["third"]["volumerate"], filename)
+            self.filter.filter_with_volumerate(self.time_zone["third"]["min_rate"],
+                                               self.time_zone["third"]["max_rate"],
+                                               self.time_zone["third"]["volumerate"],
+                                               self.time_zone["first"]["day60rate"],
+                                               filename)
         else:
             filename += "_"+"other"
-            self.filter.filter_with_volumerate(self.time_zone["other"]["min_rate"], self.time_zone["other"]["max_rate"],
-                                               self.time_zone["other"]["volumerate"], filename)
+            self.filter.filter_with_volumerate(self.time_zone["other"]["min_rate"],
+                                               self.time_zone["other"]["max_rate"],
+                                               self.time_zone["other"]["volumerate"],
+                                               self.time_zone["first"]["day60rate"],
+                                               filename)
 
 
 if __name__ == "__main__":

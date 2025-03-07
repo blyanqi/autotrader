@@ -1,0 +1,5 @@
+2025-03-07 13:01:03 [DEBUG] my_app: This is a debug message
+2025-03-07 13:01:03 [INFO] my_app: This is an info message
+2025-03-07 13:01:03 [WARNING] my_app: This is a warning message
+2025-03-07 13:01:03 [ERROR] my_app: This is an error message
+2025-03-07 13:01:03 [CRITICAL] my_app: This is a critical message

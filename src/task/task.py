@@ -1,14 +1,16 @@
 import datetime
 import os
 from apscheduler.schedulers.blocking import BlockingScheduler
-import logging
+
+from core.container import IoCContainer
+from core.logger import Logger
 
 
 class Task:
     def __init__(self):
         self.currentDir = os.path.dirname(__file__)
         self.scheduler = BlockingScheduler()
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger.get_logger("task")
 
     def create_task(self, job, seconds, args=None):
         '''创建任务'''

@@ -32,7 +32,6 @@ def kill_application(app_name):
 class RealTrader(TraderInf):
     def __init__(self):
         self.app_name = "jy"
-        self.logger = logging.getLogger(__name__)
 
     def login(self):
         if is_application_running(self.app_name):
@@ -46,11 +45,11 @@ class RealTrader(TraderInf):
     def position(self):
         return "real position"
 
-    def buy(self, code):
+    def buy(self, code, num):
         self.login()
         if is_application_running(self.app_name):
             return os.system(
-                f"""osascript {curDir}/trader/autoscpt/real/fy_buy_rr.applescript {code} 100""")
+                f"""osascript {curDir}/trader/autoscpt/real/fy_buy_rr.applescript {code} {num}""")
 
     def sell(self, code):
         self.login()

@@ -2,8 +2,9 @@ from trader.trader_inf import TraderInf
 
 
 class MockTrader(TraderInf):
-    def __init__(self):
-        pass
+    def __init__(self, logger):
+        super().__init__()
+        self.logger = logger
 
     def balance(self):
         return "mock balance"
@@ -11,7 +12,7 @@ class MockTrader(TraderInf):
     def position(self):
         return "mock position"
 
-    def buy(self, code):
+    def buy(self, code, num):
         return f"mock buy {code}"
 
     def sell(self, code):

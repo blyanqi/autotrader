@@ -1,15 +1,14 @@
-import logging
 import os
-import time
 import pandas as pd
 import datetime
 
+from core.logger import Logger
+
 
 class Filter:
-    def __init__(self, seek):
+    def __init__(self):
         self.currentDir = os.path.dirname(__file__)
-        self.seek = seek
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger.get_logger("filter")
 
     def get_today(self):
         today = datetime.datetime.now().strftime("%Y%m%d")
@@ -51,18 +50,18 @@ class Filter:
         # 如果出发地和目的地相同，则返回 False
         return row['最新价'] > row['今开']
 
-    def filter_with_volumerate(self, min_rate, max_rate, volumerate, filename):
+    def filter_with_volumerate(self, min_rate, max_rate, volumerate, day60rate, filename):
+        self.logger.info(
+            "-----------------filter_with_volumerate-------------------")
         fdf = pd.DataFrame()
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
         fdf = df[(df["涨跌幅"] > min_rate) & (df["涨跌幅"] < max_rate)
-                 & (df["量比"] > volumerate) & (df["60日涨跌幅"] <= 55)]
-        # fdf = df[(df["涨跌幅"] > min_rate) & (df["涨跌幅"] < max_rate)
-        #          & (df["量比"] > volumerate) & (df["60日涨跌幅"] <= 55)]
+                 & (df["量比"] > volumerate) & (df["60日涨跌幅"] <= day60rate)]
         fdf = fdf[fdf.apply(self.is_valid, axis=1)]
         if fdf.empty:
             return
-        self.logger.info("-----------------写入分析数据-------------------")
+        fdf = fdf.sort_values(by="量比", ascending=False)
         fdf.to_csv(
             f"{self.currentDir}/../data/{filename}.csv", index=False)
         self.logger.info("-----------------写入分析数据 done -------------------")
