@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 import pandas as pd
@@ -5,9 +6,10 @@ import datetime
 
 
 class Filter:
-    def __init__(self,seek):
+    def __init__(self, seek):
         self.currentDir = os.path.dirname(__file__)
         self.seek = seek
+        self.logger = logging.getLogger(__name__)
 
     def get_today(self):
         today = datetime.datetime.now().strftime("%Y%m%d")
@@ -31,7 +33,6 @@ class Filter:
         alldf = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
         filterDf = pd.merge(df, alldf, on="代码")
-        # print(filterDf)
         filterDf = filterDf[(filterDf["换手率"] >= turnover) & (
             filterDf["涨跌幅"] <= max_rate) & (filterDf["涨跌幅"] >= min_rate)
             & (df["60日涨跌幅"] < 50)].head(1)
@@ -46,7 +47,7 @@ class Filter:
         fdf.to_csv(
             f"{self.currentDir}/../data/{filename}.csv", index=False)
 
-    def is_valid(self,row):
+    def is_valid(self, row):
         # 如果出发地和目的地相同，则返回 False
         return row['最新价'] > row['今开']
 
@@ -55,11 +56,16 @@ class Filter:
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
         fdf = df[(df["涨跌幅"] > min_rate) & (df["涨跌幅"] < max_rate)
-                 & (df["量比"] > volumerate)&(df["60日涨跌幅"] <= 55)]
+                 & (df["量比"] > volumerate) & (df["60日涨跌幅"] <= 55)]
+        # fdf = df[(df["涨跌幅"] > min_rate) & (df["涨跌幅"] < max_rate)
+        #          & (df["量比"] > volumerate) & (df["60日涨跌幅"] <= 55)]
         fdf = fdf[fdf.apply(self.is_valid, axis=1)]
+        if fdf.empty:
+            return
+        self.logger.info("-----------------写入分析数据-------------------")
         fdf.to_csv(
             f"{self.currentDir}/../data/{filename}.csv", index=False)
-        
+        self.logger.info("-----------------写入分析数据 done -------------------")
 
     def filter_rate(self):
         df = pd.read_csv(
@@ -67,7 +73,6 @@ class Filter:
         alldf = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
         filterDf = pd.merge(df, alldf, on="代码")
-        # print(filterDf)
         filterDf = filterDf[(filterDf["涨跌幅"] >= 9) & (filterDf["60日涨跌幅"] < 50)]
         filterDf.to_csv(
             f"{self.currentDir}/../data/filter_rate.csv", index=False)
@@ -81,7 +86,7 @@ class Filter:
             return openPrice < currPrice
         except:
             return False
-    
+
     def test_filter(self):
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})

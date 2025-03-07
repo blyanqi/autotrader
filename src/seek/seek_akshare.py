@@ -1,3 +1,4 @@
+import logging
 import os
 import akshare as ak
 import pandas as pd
@@ -10,6 +11,7 @@ pd.options = {
 class Seek:
     def __init__(self):
         self.currentDir = os.path.dirname(__file__)
+        self.logger = logging.getLogger(__name__)
 
     def get_today(self):
         return datetime.datetime.now().strftime("%Y%m%d")
@@ -18,10 +20,11 @@ class Seek:
         '''实时数据
         沪深京A股行情
         '''
-        print("正在获取实时数据...")
+        self.logger.info("-----------------正在获取实时数据-------------------")
         df = ak.stock_zh_a_spot_em()
         df.to_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", index=False)
+        self.logger.info("-----------------正在获取实时数据 done -------------------")
 
     def real_data_with_sh(self):
         '''实时数据

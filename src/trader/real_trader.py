@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 from trader.trader_inf import TraderInf
@@ -9,7 +10,6 @@ curDir = os.getcwd()
 def is_application_running(app_name):
     for proc in psutil.process_iter(['pid', 'name']):
         try:
-            # print(app_name, proc)
             if app_name.lower() in proc.info['name'].lower():
                 return True
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
@@ -32,6 +32,7 @@ def kill_application(app_name):
 class RealTrader(TraderInf):
     def __init__(self):
         self.app_name = "jy"
+        self.logger = logging.getLogger(__name__)
 
     def login(self):
         if is_application_running(self.app_name):

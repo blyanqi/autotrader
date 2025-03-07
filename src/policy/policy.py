@@ -22,15 +22,15 @@ class Policy():
             "first": {
                 "start": datetime.time(9, 25),
                 "end": datetime.time(9, 35),
-                "volumerate": 10,
+                "volumerate": 20,
                 "turnover": 2,
                 "min_rate": 2,
-                "max_rate": 8,
+                "max_rate": 7,
             },
             "second": {
                 "start": datetime.time(9, 36),
                 "end": datetime.time(9, 45),
-                "volumerate": 8,
+                "volumerate": 15,
                 "turnover": 10,
                 "min_rate": 2,
                 "max_rate": 5,
@@ -38,7 +38,7 @@ class Policy():
             "third": {
                 "start": datetime.time(9, 46),
                 "end": datetime.time(10, 00),
-                "volumerate": 5,
+                "volumerate": 7,
                 "turnover": 12,
                 "min_rate": 2,
                 "max_rate": 5,
@@ -46,7 +46,7 @@ class Policy():
             "other": {
                 "volumerate": 5,
                 "turnover": 5,
-                "min_rate": 1,
+                "min_rate": 5,
                 "max_rate": 20,
             }
         }
@@ -116,7 +116,6 @@ class Policy():
     def top_volumerate_day(self):
         filename = self.policy["top_volumerate"]["name"] + \
             self.get_today()
-        print(self.get_time())
         if self.get_time() <= self.time_zone["first"]["end"]:
             filename += "_"+self.time_zone["first"]["end"].strftime("%H:%M")
             self.filter.filter_with_volumerate(self.time_zone["first"]["min_rate"], self.time_zone["first"]["max_rate"],

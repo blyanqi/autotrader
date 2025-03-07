@@ -1,18 +1,22 @@
 import datetime
 import os
 from apscheduler.schedulers.blocking import BlockingScheduler
+import logging
 
 
 class Task:
     def __init__(self):
         self.currentDir = os.path.dirname(__file__)
         self.scheduler = BlockingScheduler()
+        self.logger = logging.getLogger(__name__)
 
     def create_task(self, job, seconds, args=None):
-        print(f"Doing starting task {job.__str__()}")
+        '''创建任务'''
+        self.logger.info(f"Doing starting task ...")
         self.scheduler.add_job(job, 'interval', seconds=seconds, args=args)
 
     def start_task(self):
+        '''启动任务'''
         self.scheduler.start()
 
     def hello_world(self):

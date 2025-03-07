@@ -1,4 +1,5 @@
 import datetime
+import logging
 import math
 import os
 import time
@@ -12,6 +13,7 @@ class TraderExec:
     def __init__(self, trader: TraderInf):
         self.currentDir = os.path.dirname(__file__)
         self._trader = trader
+        self.logger = logging.getLogger(__name__)
         self._buyList = []
 
     def get_today(self):
@@ -34,7 +36,6 @@ class TraderExec:
         return time
 
     def get_timezone(self):
-        print(self.get_time())
         if self.get_time() <= datetime.time(9, 35):
             return "09:35"
         if self.get_time() <= datetime.time(9, 45):
@@ -54,26 +55,9 @@ class TraderExec:
                 return
             if len(self._buyList) >= 3:  # 购买股票数量限制
                 return
-            print("trader: ", code)
+            self.logger.info("trader: ", code)
             self._buyList.append(code)
-            print(self.buy(code))
-
-    def trader_stock_with_min(self, policyName, filter, seek):
-        df = pd.read_csv(
-            f"{self.currentDir}/../data/{policyName}{self.get_today()}_{self.get_timezone()}.csv", dtype={"代码": str})
-        if df["代码"].empty:
-            return
-        codes = df["代码"]
-        for code in codes:
-            if not filter.filter_stock_intraday_min(code, seek):
-                continue
-            if code in self._buyList:  # 防止重复购买
-                return
-            if len(self._buyList) >= 3:  # 购买股票数量限制
-                return
-            print("trader: ", code)
-            self._buyList.append(code)
-            print(self.buy(code))
+            self.logger.info(self.buy(code))
 
     def hold(self):
         print("get hold stock")
