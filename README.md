@@ -38,6 +38,9 @@ https://jinja.palletsprojects.com/en/stable/templates/
 ### watchdog
 `pip install watchdog`
 
+### pyyaml
+`pip install pyyaml`
+
 
 ## 目录结构
 ```sh

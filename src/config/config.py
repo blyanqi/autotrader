@@ -1,29 +1,61 @@
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-import time
+import yaml
+import os
 
 
-class ConfigReloadHandler(FileSystemEventHandler):
-    def __init__(self, config_loader):
-        self.config_loader = config_loader
+class ConfigLoader:
+    def __init__(self, config_file):
+        """
+        初始化配置加载器
+        :param config_file: YAML配置文件路径
+        """
+        self.config_file = config_file
+        self.config = self.load_config()
 
-    def on_modified(self, event):
-        if event.src_path == self.config_loader.config_file:
-            print("配置文件已修改，重新加载...")
-            self.config_loader.load_config()
+    def load_config(self):
+        """
+        加载YAML配置文件
+        :return: 配置字典
+        """
+        if not os.path.exists(self.config_file):
+            raise FileNotFoundError(f"配置文件 {self.config_file} 不存在")
+
+        with open(self.config_file, "r", encoding="utf-8") as file:
+            config = yaml.safe_load(file)
+        return config
+
+    def get(self, key, default=None):
+        """
+        获取配置项
+        :param key: 配置键（支持点分路径，如 'database.host'）
+        :param default: 默认值
+        :return: 配置值或默认值
+        """
+        keys = key.split(".")
+        value = self.config
+        for k in keys:
+            if isinstance(value, dict) and k in value:
+                value = value[k]
+            else:
+                return default
+        return value
 
 
-# 示例
+# 示例使用
 if __name__ == "__main__":
+    # 创建配置加载器
     config_loader = ConfigLoader("config.yaml")
-    event_handler = ConfigReloadHandler(config_loader)
-    observer = Observer()
-    observer.schedule(event_handler, path=".", recursive=False)
-    observer.start()
 
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+    # 获取配置项
+    app_name = config_loader.get("application.name")
+    log_level = config_loader.get("logging.level")
+    db_host = config_loader.get("database.host")
+    db_port = config_loader.get("database.port")
+
+    print(f"App Name: {app_name}")
+    print(f"Log Level: {log_level}")
+    print(f"Database Host: {db_host}")
+    print(f"Database Port: {db_port}")
+
+    # 获取不存在的配置项，返回默认值
+    unknown_key = config_loader.get("nonexistent.key", default="Default Value")
+    print(f"Unknown Key: {unknown_key}")

@@ -1,4 +1,3 @@
-import logging
 from core.container import IoCContainer
 import core.service as service
 
@@ -20,8 +19,5 @@ def rate_volumnrate_policy_day(isTrader=False):
 
 
 if __name__ == '__main__':
-    # rate_turnover_policy_day()
-    # test()
-    # sell_operator(5)
     rate_volumnrate_policy_day(True)
     pass
