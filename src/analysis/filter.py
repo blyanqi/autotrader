@@ -76,16 +76,6 @@ class Filter:
         filterDf.to_csv(
             f"{self.currentDir}/../data/filter_rate.csv", index=False)
 
-    def filter_stock_intraday_min(self, row):
-        try:
-            df = self.seek.stock_intraday_em(row["代码"])
-            filtered_df = df[df['时间'].str.startswith('09:30')]
-            openPrice = filtered_df.iloc[0]["成交价"]
-            currPrice = df.tail(1)[["成交价"]].values[0]
-            return openPrice < currPrice
-        except:
-            return False
-
     def test_filter(self):
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})

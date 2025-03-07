@@ -1,62 +1,21 @@
 import datetime
 
+import pandas as pd
+
 from core.logger import Logger
+from core.container import IoCContainer
 
 
 class Policy():
     def __init__(self, filter):
+        container = IoCContainer()
+        self.config = container.resolve(
+            "config", "")
         self.filter = filter
         self.logger = Logger.get_logger("policy")
-        self.policy = {
-            "rate_turnover": {
-                "name": "rate_turnover",
-                "desc": "首先过滤出前一天涨停的个股。然后根据换手率过滤，涨幅在一定区间类的个股。依据是高换手意味着人气高。"
-            },
-            "rate_turnover_curday": {
-                "name": "rate_turnover_curday",
-                "desc": "根据换手率过滤，涨幅在一定区间类的个股。依据是高换手意味着人气高。"
-            },
-            "top_volumerate": {
-                "name": "top_volumerate",
-                "desc": "根据量比过滤，涨幅在一定区间类的个股。依据是高量比意味着交易量大。"
-            }
-        }
-        self.time_zone = {
-            "first": {
-                "start": datetime.time(9, 25),
-                "end": datetime.time(9, 35),
-                "volumerate": 20,
-                "turnover": 2,
-                "min_rate": 2,
-                "max_rate": 7,
-                "day60rate": 55
-            },
-            "second": {
-                "start": datetime.time(9, 36),
-                "end": datetime.time(9, 45),
-                "volumerate": 15,
-                "turnover": 10,
-                "min_rate": 2,
-                "max_rate": 5,
-                "day60rate": 40
-            },
-            "third": {
-                "start": datetime.time(9, 46),
-                "end": datetime.time(10, 00),
-                "volumerate": 7,
-                "turnover": 12,
-                "min_rate": 2,
-                "max_rate": 5,
-                "day60rate": 30
-            },
-            "other": {
-                "volumerate": 5,
-                "turnover": 5,
-                "min_rate": 5,
-                "max_rate": 9,
-                "day60rate": 20
-            }
-        }
+
+    def str_to_time(self, timeStr):
+        return datetime.datetime.strptime(timeStr, "%H:%M").time()
 
     def get_time(self):
         time = datetime.datetime.now().time()
@@ -66,92 +25,84 @@ class Policy():
         today = datetime.datetime.now().strftime("%Y%m%d")
         return today
 
-    def top_rate_turnover_policy(self):
-        '''有过涨停的股票'''
-        # 时间在 9:25-9:35、9:35-9:45、9:45-10:00之间
-        filename = self.policy["rate_turnover"]["name"] + self.get_today()
-        if self.get_time() <= self.time_zone["first"]["end"]:
-            filename += "_"+self.time_zone["first"]["end"].strftime("%H:%M")
-            self.filter.filter_top_with_rate_turnover(
-                self.time_zone["first"]["min_rate"], self.time_zone["first"]["max_rate"],
-                self.time_zone["first"]["turnover"], filename)
-            return
-        if self.get_time() <= self.time_zone["second"]["end"]:
-            filename += "_"+self.time_zone["second"]["end"].strftime("%H:%M")
-            self.filter.filter_top_with_rate_turnover(
-                self.time_zone["second"]["min_rate"], self.time_zone["second"]["max_rate"],
-                self.time_zone["second"]["turnover"], filename)
-            return
-        if self.get_time() <= self.time_zone["third"]["end"]:
-            filename += "_"+self.time_zone["third"]["end"].strftime("%H:%M")
-            self.filter.filter_top_with_rate_turnover(
-                self.time_zone["third"]["min_rate"], self.time_zone["third"]["max_rate"],
-                self.time_zone["third"]["turnover"], filename)
-        else:
-            filename += "_"+"other"
-            self.filter.filter_top_with_rate_turnover(
-                self.time_zone["other"]["min_rate"], self.time_zone["other"]["max_rate"],
-                self.time_zone["other"]["turnover"], filename)
+    def policy_0(self):
+        first = self.config.get_nested_value("policy.0.time_zone.0")
+        second = self.config.get_nested_value("policy.0.time_zone.1")
+        third = self.config.get_nested_value("policy.0.time_zone.2")
+        other = self.config.get_nested_value("policy.0.time_zone.3")
 
-    def top_rate_turnover_policy_day(self):
-        '''今日开盘的股票'''
-        filename = self.policy["rate_turnover_curday"]["name"] + \
-            self.get_today()
-        if self.get_time() <= self.time_zone["first"]["end"]:
-            filename += "_"+self.time_zone["first"]["end"].strftime("%H:%M")
-            self.filter.filter_with_turnover(
-                self.time_zone["first"]["min_rate"], self.time_zone["first"]["max_rate"],
-                self.time_zone["first"]["turnover"], filename)
-            return
-        if self.get_time() <= self.time_zone["second"]["end"]:
-            filename += "_"+self.time_zone["second"]["end"].strftime("%H:%M")
-            self.filter.filter_with_turnover(
-                self.time_zone["second"]["min_rate"], self.time_zone["second"]["max_rate"],
-                self.time_zone["second"]["turnover"], filename)
-            return
-        if self.get_time() <= self.time_zone["third"]["end"]:
-            filename += "_"+self.time_zone["third"]["end"].strftime("%H:%M")
-            self.filter.filter_with_turnover(
-                self.time_zone["third"]["min_rate"], self.time_zone["third"]["max_rate"],
-                self.time_zone["third"]["turnover"], filename)
-        else:
-            filename += "_"+"other"
-            self.filter.filter_with_turnover(
-                self.time_zone["other"]["min_rate"], self.time_zone["other"]["max_rate"],
-                self.time_zone["other"]["turnover"], filename)
+        return {
+            "first": {
+                "start": self.str_to_time(first["start"]),
+                "end": self.str_to_time(first["end"]),
+                "volumerate": first["volumerate"],
+                "turnover": first["turnover"],
+                "min_rate": first["min_rate"],
+                "max_rate": first["max_rate"],
+                "day60rate": first["day60rate"]
+            },
+            "second": {
+                "start": self.str_to_time(second["start"]),
+                "end": self.str_to_time(second["end"]),
+                "volumerate": second["volumerate"],
+                "turnover": second["turnover"],
+                "min_rate": second["min_rate"],
+                "max_rate": second["max_rate"],
+                "day60rate": second["day60rate"]
+            },
+            "third": {
+                "start": self.str_to_time(third["start"]),
+                "end": self.str_to_time(third["end"]),
+                "volumerate": third["volumerate"],
+                "turnover": third["turnover"],
+                "min_rate": third["min_rate"],
+                "max_rate": third["max_rate"],
+                "day60rate": third["day60rate"]
+            },
+            "other": {
+                "volumerate": other["volumerate"],
+                "turnover": other["turnover"],
+                "min_rate": other["min_rate"],
+                "max_rate": other["max_rate"],
+                "day60rate": other["day60rate"]
+            }
+        }
 
     def top_volumerate_day(self):
-        self.logger.info(f"use policy top_volumerate_day {self.get_time()}")
-        filename = self.policy["top_volumerate"]["name"] + self.get_today()
-        if self.get_time() <= self.time_zone["first"]["end"]:
-            filename += "_"+self.time_zone["first"]["end"].strftime("%H:%M")
-            self.filter.filter_with_volumerate(self.time_zone["first"]["min_rate"],
-                                               self.time_zone["first"]["max_rate"],
-                                               self.time_zone["first"]["volumerate"],
-                                               self.time_zone["first"]["day60rate"],
+        self.logger.info(f"use policy top_volumerate_day \
+            {self.get_time()}")
+        p = self.policy_0()
+        filename = self.config.get_nested_value(
+            "policy.0")["name"] + self.get_today()
+        if self.get_time() <= p["first"]["end"]:
+            filename += "_"+p["first"]["end"].strftime("%H:%M")
+            self.filter.filter_with_volumerate(p["first"]["min_rate"],
+                                               p["first"]["max_rate"],
+                                               p["first"]["volumerate"],
+                                               p["first"]["day60rate"],
                                                filename)
             return
-        if self.get_time() <= self.time_zone["second"]["end"]:
-            filename += "_"+self.time_zone["second"]["end"].strftime("%H:%M")
-            self.filter.filter_with_volumerate(self.time_zone["second"]["min_rate"],
-                                               self.time_zone["second"]["max_rate"],
-                                               self.time_zone["second"]["volumerate"],
-                                               self.time_zone["first"]["day60rate"],
+        if self.get_time() <= p["second"]["end"]:
+            filename += "_"+p["second"]["end"].strftime("%H:%M")
+            self.filter.filter_with_volumerate(p["second"]["min_rate"],
+                                               p["second"]["max_rate"],
+                                               p["second"]["volumerate"],
+                                               p["second"]["day60rate"],
                                                filename)
             return
-        if self.get_time() <= self.time_zone["third"]["end"]:
-            filename += "_"+self.time_zone["third"]["end"].strftime("%H:%M")
-            self.filter.filter_with_volumerate(self.time_zone["third"]["min_rate"],
-                                               self.time_zone["third"]["max_rate"],
-                                               self.time_zone["third"]["volumerate"],
-                                               self.time_zone["first"]["day60rate"],
+        if self.get_time() <= p["third"]["end"]:
+            filename += "_"+p["third"]["end"].strftime("%H:%M")
+            self.filter.filter_with_volumerate(p["third"]["min_rate"],
+                                               p["third"]["max_rate"],
+                                               p["third"]["volumerate"],
+                                               p["third"]["day60rate"],
                                                filename)
         else:
             filename += "_"+"other"
-            self.filter.filter_with_volumerate(self.time_zone["other"]["min_rate"],
-                                               self.time_zone["other"]["max_rate"],
-                                               self.time_zone["other"]["volumerate"],
-                                               self.time_zone["first"]["day60rate"],
+            self.filter.filter_with_volumerate(p["other"]["min_rate"],
+                                               p["other"]["max_rate"],
+                                               p["other"]["volumerate"],
+                                               p["other"]["day60rate"],
                                                filename)
 
 

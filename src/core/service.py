@@ -1,4 +1,6 @@
 
+from config.config import ConfigLoader
+from config.config_filesystem import ConfigReloadHandler
 from .container import IoCContainer
 from analysis.filter import Filter
 from .logger import Logger
@@ -16,3 +18,5 @@ container.register("seek", Seek, singleton=True)
 container.register("traderExec", TraderExec, singleton=True)
 container.register("filter", Filter, singleton=True)
 container.register("policy", Policy, singleton=True)
+container.register("config", ConfigLoader, singleton=True)
+container.register("configReload", ConfigReloadHandler, singleton=True)

@@ -1,0 +1,45 @@
+task:
+  real_data:
+    name: real_data
+    timer: 10
+  policy_top:
+    name: policy_top
+    timer: 12
+  trader:
+    name : trader
+    timer: 15
+policy:
+  - type:
+    name: top_volumerate
+    desc: "根据量比过滤，涨幅在一定区间类的个股。依据是高量比意味着交易量大。"
+    time_zone:
+    - item: first
+      start: "9:25"
+      end: "9:35"
+      volumerate: 20
+      turnover: 2
+      min_rate: 2
+      max_rate: 7
+      day60rate: 55
+    - item: second
+      start: "9:36"
+      end: "9:45"
+      volumerate: 15
+      turnover: 10
+      min_rate: 2
+      max_rate: 5
+      day60rate: 40
+    - item: third
+      start: "9:46"
+      end: "10:00"
+      volumerate: 7
+      turnover: 12
+      min_rate: 2
+      max_rate: 5
+      day60rate: 30
+    - item: other
+      volumerate: 5
+      turnover: 5
+      min_rate: 5
+      max_rate: 9
+      day60rate: 20

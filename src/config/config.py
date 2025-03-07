@@ -3,19 +3,24 @@ import os
 
 
 class ConfigLoader:
-    def __init__(self, config_file):
+    _config = ""
+
+    def __init__(self, config_file=""):
         """
         初始化配置加载器
         :param config_file: YAML配置文件路径
         """
         self.config_file = config_file
-        self.config = self.load_config()
+        ConfigLoader._config = self.load_config()
 
     def load_config(self):
         """
         加载YAML配置文件
         :return: 配置字典
         """
+        if ConfigLoader._config:
+            return ConfigLoader._config
+
         if not os.path.exists(self.config_file):
             raise FileNotFoundError(f"配置文件 {self.config_file} 不存在")
 
@@ -31,10 +36,29 @@ class ConfigLoader:
         :return: 配置值或默认值
         """
         keys = key.split(".")
-        value = self.config
+        value = ConfigLoader._config
         for k in keys:
             if isinstance(value, dict) and k in value:
                 value = value[k]
+            else:
+                return default
+        return value
+
+    def get_nested_value(self, key, default=None):
+        """
+        递归获取嵌套路径的值
+        :param data: 数据（字典或列表）
+        :param path: 路径（如 "users.0.name"）
+        :param default: 默认值
+        :return: 路径对应的值或默认值
+        """
+        keys = key.split(".")
+        value = ConfigLoader._config
+        for key in keys:
+            if isinstance(value, dict) and key in value:
+                value = value[key]
+            elif isinstance(value, list) and key.isdigit() and int(key) < len(value):
+                value = value[int(key)]
             else:
                 return default
         return value
