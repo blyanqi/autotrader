@@ -1,39 +1,70 @@
-import datetime
-import json
-import logging
-import math
-import os
-
+import re
+import time
+from src.entity.trader_entity import Balance
+from src.trader.trader_inf import TraderInf
+from src.config.config import ConfigLoader
+from src.core.logger import Logger
 import pandas as pd
-from trader.trader_inf import TraderInf
+import os
+import math
+import json
+import datetime
 
 
 class TraderExec:
     def __init__(self, trader: TraderInf):
+        config = ConfigLoader()
         self.currentDir = os.path.dirname(__file__)
-        self._trader = trader  # 交易系统
-        self._amount = 20000    # 入市金额
-        self._buyList = {}      # 今日交易的股票池
-        self._holdtake = 2     # hold stock
-        self._bottle = 5        # 份额
-        self.isTrader = False
-        self.logger = logging.getLogger("trader_exec")
+        self.logger = Logger.get_logger("trader_exec")
+        self._trader = trader
+        # 配置
+        self._isTrader = config.get(
+            "trader.is_trader")
+        self._amount = config.get("trader.amount")
+        self._holdtake = config.get("trader.holdtake")
+        self._bottle = config.get("trader.bottle")
+        self._banTraderFailedCount = config.get(
+            "trader.ban_trader_failed_count")
+        self.max_holdtake = config.get("trader.max_holdtake")
+        # 运行时
+        self._buyList = {}
+        self._traderFailedCount = 0
+        self.balance = Balance()
+        # 加载
         self.load_buy_list()
+        self.get_balance()
 
     def get_today(self):
         return datetime.datetime.now().strftime('%Y%m%d')
 
-    def balance(self):
-        return self._trader.balance()
+    def get_balance(self):
+        try:
+            resInfo = self._trader.balance()
+            if resInfo is None:
+                self.logger.info(f"balance: {resInfo}")
+                return
+            resInfo = resInfo.replace(",", "")
+            self.logger.info(f"trader: {resInfo}")
+            pattern = r'(\w+):\s+([\d,\.]+)'
+            fields = re.findall(pattern, resInfo)
+            if fields is not None:
+                fields_dict = {k: v.replace(',', '') for k, v in fields}
+            else:
+                pattern = r'(\w+)\.\s+([\d,\.]+)'
+                fields = re.findall(pattern, resInfo)
+                if fields is None:
+                    return
+                fields_dict = {k: v.replace(',', '') for k, v in fields}
+            self.balance.amount = fields_dict['资产总值']
+            self.balance.netAsset = fields_dict['净资产']
+            self.balance.marketValue = fields_dict['总市值']
+            self.balance.useable = fields_dict['可用']
+            self.balance.drawable = fields_dict['可取']
+        except:
+            self.logger.info(f"balance error")
 
     def position(self):
         return self._trader.position()
-
-    def buy(self, code, num):
-        return self._trader.buy(code, num)
-
-    def sell(self, code):
-        return self._trader.sell(code)
 
     def get_time(self):
         time = datetime.datetime.now().time()
@@ -64,33 +95,95 @@ class TraderExec:
             return "10:00"
         return "other"
 
-    def trader_stock(self, policyName):
+    def trader_process(self):
+        self.logger.info(
+            f"----------------------Trader start-----------------------")
+        if not self._isTrader:
+            self.logger.info("trader is not open")
+            return False
+        if len(self._buyList) >= self.max_holdtake:
+            self.logger.info("hold stock is full")
+            return False
+        return True
+
+    def policy_buy_stock(self, policyName):
+        if not self.trader_process():
+            return
+        if not os.path.exists(f"{self.currentDir}/../data/{policyName}{self.get_today()}_{self.get_timezone()}.csv"):
+            self.logger.info("no trader data")
+            return
         df = pd.read_csv(
             f"{self.currentDir}/../data/{policyName}{self.get_today()}_{self.get_timezone()}.csv", dtype={"代码": str})
         if df.empty:
             return
         traderData = df.head(self._holdtake).to_dict(orient='records')
         for row in traderData:
-            if len(self._buyList) >= self._holdtake:
-                return
             code = row["代码"]
             if code in self._buyList:
                 continue
+            if self._traderFailedCount >= self._banTraderFailedCount:
+                self.logger.info(
+                    f"trader failed count: {self._traderFailedCount}")
+                return
             price = row["最新价"]
             num = math.floor(self._amount/self._bottle/price/100)*100
-            self.logger.info("trader: ", code, price, num)
+            if num <= 0:
+                continue
+            self.logger.info(f"trader: {code}, {price}, {num}")
+            self._trader.buy(code, num)
             self.add_buy_list({"code": code, "price": price, "num": num})
-            if self.isTrader:
-                self.buy(code, num)
 
-    def hold(self):
-        print("get hold stock")
+    def get_hold(self):
         holdstock = self._trader.hold()
-        holdstock = holdstock.replace(",", "")
-        stockInfo = holdstock.split("\n")
-        stockList = stockInfo[:5]
-        stockRate = stockInfo[5:]
-        return [stockList, stockRate]
+        self.logger.info(f"hold stock: {holdstock}")
+        if not holdstock:
+            return []
+        stockInfo = holdstock.split(",")
+        self.logger.debug(f"{stockInfo}")
+        stockList = stockInfo[0].removesuffix("\n").split("\n")
+        stockRate = stockInfo[1].removesuffix("\n").split("\n")
+        stockHoldNum = stockInfo[2].removesuffix("\n").split("\n")
+        return [stockList, stockRate, stockHoldNum]
+
+    def sell_all(self):
+        holdStock = self.get_hold()
+        self.logger.info(f"hold stock: {holdStock}")
+        stockList = holdStock[0]
+        self.logger.debug(f"{stockList}")
+        for stock in stockList:
+            self._trader.sell_all(stock)
+
+    def sell_that(self):
+        holdStock = self.get_hold()
+        self.logger.info(f"hold stock: {holdStock}")
+        stockList = holdStock[0]
+        stockNum = holdStock[2]
+        self.logger.debug(f"{stockList} {stockNum}")
+        for index in range(len(stockList)):
+            self.logger.info(f"{stockList[index]} {stockNum[index]}")
+            self._trader.sell(stockList[index], stockNum[index])
+            time.sleep(1)
+
+    def buy(self, code, num):
+        if len(code) != 6:
+            self.logger.info(f"code error: {code}")
+            return
+        if int(num) > 10000:
+            self.logger.info(f"num error: {num}")
+            return
+        self._trader.buy(code, num)
+
+    def sell(self, code, num):
+        if len(code) != 6:
+            self.logger.info(f"code error: {code}")
+            return
+        if int(num) > 10000:
+            self.logger.info(f"num error: {num}")
+            return
+        self._trader.sell(code, num)
+
+    def test(self, code, num):
+        pass
 
 
 if __name__ == '__main__':

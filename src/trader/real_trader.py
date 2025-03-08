@@ -1,7 +1,8 @@
 import logging
 import os
 import subprocess
-from trader.trader_inf import TraderInf
+from src.core.logger import Logger
+from src.trader.trader_inf import TraderInf
 import psutil
 
 curDir = os.getcwd()
@@ -32,38 +33,89 @@ def kill_application(app_name):
 class RealTrader(TraderInf):
     def __init__(self):
         self.app_name = "jy"
+        self.logger = Logger.get_logger("real_trader")
+        self.login()
 
     def login(self):
-        if is_application_running(self.app_name):
-            return
-        return os.system(
-            f"""osascript {curDir}/trader/autoscpt/real/fy_login.applescript""")
+        try:
+            if is_application_running(self.app_name):
+                self.logger.info("already login")
+                return True
+            loginStatus = os.system(
+                f"""osascript {curDir}/trader/autoscpt/real/fy_login.applescript""")
+            self.logger.info(f"loginStatus: {loginStatus}")
+            return loginStatus
+        except Exception as e:
+            self.logger.error(f"login error: {e}")
+            return False
 
     def balance(self):
-        return "real balance"
+        try:
+            self.login()
+            if is_application_running(self.app_name):
+                self.logger.info(
+                    f"""{curDir}/trader/autoscpt/real/fy_balance_rr.applescript""")
+                result = subprocess.run(
+                    ['osascript', f"""{curDir}/trader/autoscpt/real/fy_balance_rr.applescript"""], text=True, capture_output=True)
+                km_output = result.stdout.strip()
+                return km_output
+        except Exception as e:
+            self.logger.error(f"buy error: {e}")
+            return False
 
     def position(self):
         return "real position"
 
     def buy(self, code, num):
-        self.login()
-        if is_application_running(self.app_name):
-            return os.system(
-                f"""osascript {curDir}/trader/autoscpt/real/fy_buy_rr.applescript {code} {num}""")
+        try:
+            if not self.login():
+                self.logger.info("login failed")
+                return
+            if is_application_running(self.app_name):
+                return os.system(
+                    f"""osascript {curDir}/trader/autoscpt/real/fy_buy_rr.applescript {code} {num}""")
+        except Exception as e:
+            self.logger.error(f"buy error: {e}")
+            return False
 
-    def sell(self, code):
-        self.login()
-        if is_application_running(self.app_name):
-            return os.system(
-                f"""osascript {curDir}/trader/autoscpt/real/fy_sell_rr.applescript {code} 100""")
+    def sell_all(self, code):
+        try:
+            if not self.login():
+                self.logger.info("login failed")
+                return
+            if is_application_running(self.app_name):
+                return os.system(
+                    f"""osascript {curDir}/trader/autoscpt/real/fy_sell_all_rr.applescript {code}""")
+        except Exception as e:
+            self.logger.error(f"sell_all error: {e}")
+
+    def sell(self, code, num):
+        try:
+            if not self.login():
+                self.logger.info("login failed")
+                return
+            if is_application_running(self.app_name):
+                return os.system(
+                    f"""osascript {curDir}/trader/autoscpt/real/fy_sell_rr.applescript {code} {num}""")
+        except Exception as e:
+            self.logger.error(f"sell error: {e}")
+            return False
 
     def hold(self):
-        self.login()
-        if is_application_running(self.app_name):
-            result = subprocess.run(
-                ['osascript', f"""{curDir}/trader/autoscpt/real/fy_hold_rr.applescript"""], text=True, capture_output=True)
-            km_output = result.stdout.strip()
-            return km_output
+        try:
+            if not self.login():
+                self.logger.info("login failed")
+                return
+            if is_application_running(self.app_name):
+                self.logger.info(
+                    f"""{curDir}/trader/autoscpt/real/fy_hold_rr.applescript""")
+                result = subprocess.run(
+                    ['osascript', f"""{curDir}/trader/autoscpt/real/fy_hold_rr.applescript"""], text=True, capture_output=True)
+                km_output = result.stdout.strip()
+                return km_output
+        except Exception as e:
+            self.logger.error(f"sell error: {e}")
+            return ""
 
 
 if __name__ == "__main__":

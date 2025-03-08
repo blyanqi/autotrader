@@ -6,4 +6,4 @@ tell application "Keyboard Maestro Engine"
     set kmValue2 to value of variable "zset"
     do script "94D240F0-C07A-493F-8856-FB79B34639B4"
 end tell
-return [kmValue,kmValue1]
+return [kmValue,kmValue1,kmValue2]

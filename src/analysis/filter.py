@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import datetime
 
-from core.logger import Logger
+from src.core.logger import Logger
 
 
 class Filter:
@@ -53,6 +53,11 @@ class Filter:
     def filter_with_volumerate(self, min_rate, max_rate, volumerate, day60rate, filename):
         self.logger.info(
             "-----------------filter_with_volumerate-------------------")
+        self.logger.info(f'''min_rate: {min_rate}''')
+        self.logger.info(f'''max_rate: {max_rate}''')
+        self.logger.info(f'''volumerate: {volumerate}''')
+        self.logger.info(f'''day60rate: {day60rate}''')
+        self.logger.info(f'''filename: {filename}''')
         fdf = pd.DataFrame()
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})

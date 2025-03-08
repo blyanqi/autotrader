@@ -2,8 +2,8 @@ import datetime
 import os
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from core.container import IoCContainer
-from core.logger import Logger
+from src.core.logger import Logger
+from src.entity.task_entity import JobEntity
 
 
 class Task:
@@ -12,10 +12,11 @@ class Task:
         self.scheduler = BlockingScheduler()
         self.logger = Logger.get_logger("task")
 
-    def create_task(self, name, job, seconds, args=None):
+    def create_task(self, job: JobEntity):
         '''创建任务'''
-        self.logger.info(f"Doing starting task {name}...")
-        self.scheduler.add_job(job, 'interval', seconds=seconds, args=args)
+        self.logger.info(f"Doing starting task {job.name}...")
+        self.scheduler.add_job(
+            job.job, 'interval', seconds=job.seconds, args=job.args)
 
     def start_task(self):
         '''启动任务'''

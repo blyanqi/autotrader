@@ -84,6 +84,12 @@ https://jinja.palletsprojects.com/en/stable/templates/
     └── trader_inf.py # 交易接口
 ```
 
+### 测试
+```sh
+curl -X POST -H "Content-Type: application/json" -d '{"code": "000001", "num": "100"}' http://127.0.0.1:5000/api/buy
+
+```
+
 ### 流程
 * 获取即时数据
 * 对数据进行过滤

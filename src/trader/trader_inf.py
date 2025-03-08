@@ -17,7 +17,11 @@ class TraderInf(ABC):
         pass
 
     @abstractmethod
-    def sell(self, code):
+    def sell(self, code, num):
+        pass
+
+    @abstractmethod
+    def sell_all(self, code):
         pass
 
     @abstractmethod

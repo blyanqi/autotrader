@@ -3,7 +3,7 @@ import akshare as ak
 import pandas as pd
 import datetime
 
-from core.logger import Logger
+from src.core.logger import Logger
 
 pd.options = {
 }

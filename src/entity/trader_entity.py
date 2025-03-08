@@ -1,34 +1,61 @@
 
 class Balance():
+
     def __init__(self):
-        # 参考市值
+        # 资产总值
         self._amount = 0
-        # 最大资产
-        self._max_total = 10*10 ^ 8
-        # '可用资金': 28494.21,
-        # '币种': '0',
-        # '总资产': 50136.21,
-        # '资金余额': 28494.21,
-        # '资金帐号': 'xxx'}
+        # 净资产
+        self._netAsset = 0
+        # 总市值
+        self._marketValue = 0
+        # 可用
+        self._useable = 0
+        # 可取
+        self._drawable = 0
 
     @property
     def amount(self):
         return self._amount
 
-    def deposit(self, value):
-        if value < 0:
-            raise ValueError("amount must be greater than 0")
-        if value > self._max_total:
-            raise ValueError("amount must be less than total")
-        self._amount += value
-        return self._amount
+    @property
+    def netAsset(self):
+        return self._netAsset
 
-    def drawable(self, value):
-        if value < 0:
-            raise ValueError("amount must be greater than 0")
-        if value > self._max_total:
-            raise ValueError("amount must be less than total")
-        if value > self._amount:
-            raise ValueError("amount must be less than balance")
-        self._amount -= value
-        return self._amount
+    @property
+    def marketValue(self):
+        return self._marketValue
+
+    @property
+    def useable(self):
+        return self._useable
+
+    @property
+    def drawable(self):
+        return self._drawable
+
+    @amount.setter
+    def amount(self, amount):
+        self._amount = amount
+
+    @netAsset.setter
+    def netAsset(self, netAsset):
+        self._netAsset = netAsset
+
+    @marketValue.setter
+    def marketValue(self, marketValue):
+        self._marketValue = marketValue
+
+    @useable.setter
+    def useable(self, useable):
+        self._useable = useable
+
+    @drawable.setter
+    def drawable(self, drawable):
+        self._drawable = drawable
+
+
+if __name__ == "__main__":
+    balance = Balance()
+    print(balance.amount)
+    balance.amount = 100
+    print(balance.amount)

@@ -2,8 +2,8 @@ import datetime
 
 import pandas as pd
 
-from core.logger import Logger
-from core.container import IoCContainer
+from src.core.logger import Logger
+from src.core.container import IoCContainer
 
 
 class Policy():
@@ -72,10 +72,16 @@ class Policy():
         self.logger.info(f"use policy top_volumerate_day \
             {self.get_time()}")
         p = self.policy_0()
+        self.logger.debug(p)
         filename = self.config.get_nested_value(
             "policy.0")["name"] + self.get_today()
         if self.get_time() <= p["first"]["end"]:
             filename += "_"+p["first"]["end"].strftime("%H:%M")
+            self.logger.info(f'''min: {p["first"]["min_rate"]}''')
+            self.logger.info(f'''max: {p["first"]["max_rate"]}''')
+            self.logger.info(f'''volumerate: {p["first"]["volumerate"]}''')
+            self.logger.info(f'''day60rate: {p["first"]["day60rate"]}''')
+            self.logger.info(f'''filename: {filename}''')
             self.filter.filter_with_volumerate(p["first"]["min_rate"],
                                                p["first"]["max_rate"],
                                                p["first"]["volumerate"],
@@ -84,6 +90,7 @@ class Policy():
             return
         if self.get_time() <= p["second"]["end"]:
             filename += "_"+p["second"]["end"].strftime("%H:%M")
+
             self.filter.filter_with_volumerate(p["second"]["min_rate"],
                                                p["second"]["max_rate"],
                                                p["second"]["volumerate"],

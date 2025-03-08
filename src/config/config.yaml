@@ -16,10 +16,10 @@ policy:
     - item: first
       start: "9:25"
       end: "9:35"
-      volumerate: 20
+      volumerate: 5
       turnover: 2
       min_rate: 2
-      max_rate: 7
+      max_rate: 20
       day60rate: 55
     - item: second
       start: "9:36"
@@ -43,3 +43,11 @@ policy:
       min_rate: 5
       max_rate: 9
       day60rate: 20
+trader:
+  is_trader: true # 是否交易
+  amount: 10000
+  holdtake: 6 # 当日持有股票
+  bottle: 5   # 每次买入份额
+  max_holdtake: 10  # 当日最大持有股票
+  ban_trader_failed_count: 3 # 禁止交易的失败次数
+  

@@ -1,14 +1,14 @@
 
-from config.config import ConfigLoader
-from config.config_filesystem import ConfigReloadHandler
+from src.config.config import ConfigLoader
+from src.config.config_filesystem import ConfigReloadHandler
 from .container import IoCContainer
-from analysis.filter import Filter
+from src.analysis.filter import Filter
 from .logger import Logger
-from policy.policy import Policy
-from seek.seek_akshare import Seek
-from task.task import Task
-from trader.real_trader import RealTrader
-from trader.trader_exec import TraderExec
+from src.policy.policy import Policy
+from src.seek.seek_akshare import Seek
+from src.task.task import Task
+from src.trader.real_trader import RealTrader
+from src.trader.trader_exec import TraderExec
 
 container = IoCContainer()
 
