@@ -26,6 +26,7 @@ class TraderExec:
         self._banTraderFailedCount = config.get(
             "trader.ban_trader_failed_count")
         self.max_holdtake = config.get("trader.max_holdtake")
+        self.max_hold_amount = config.get("trader.max_hold_amount")
         # 运行时
         self._buyList = {}
         self._traderFailedCount = 0
@@ -55,11 +56,11 @@ class TraderExec:
                 if fields is None:
                     return
                 fields_dict = {k: v.replace(',', '') for k, v in fields}
-            self.balance.amount = fields_dict['资产总值']
-            self.balance.netAsset = fields_dict['净资产']
-            self.balance.marketValue = fields_dict['总市值']
-            self.balance.useable = fields_dict['可用']
-            self.balance.drawable = fields_dict['可取']
+            self.balance.amount = float(fields_dict['资产总值'])
+            self.balance.netAsset = float(fields_dict['净资产'])
+            self.balance.marketValue = float(fields_dict['总市值'])
+            self.balance.useable = float(fields_dict['可用'])
+            self.balance.drawable = float(fields_dict['可取'])
         except:
             self.logger.info(f"balance error")
 
@@ -72,8 +73,9 @@ class TraderExec:
 
     def load_buy_list(self):
         try:
-            self._buyList = json.load(open(
-                f"{self.currentDir}/../data/buyList_{self.get_today()}.json", "r"))
+            if os.path.exists(f"{self.currentDir}/../data/buyList_{self.get_today()}.json"):
+                self._buyList = json.load(open(
+                    f"{self.currentDir}/../data/buyList_{self.get_today()}.json", "r"))
         except Exception as e:
             print(e)
             pass
@@ -103,6 +105,14 @@ class TraderExec:
             return False
         if len(self._buyList) >= self.max_holdtake:
             self.logger.info("hold stock is full")
+            return False
+
+        if self.balance.amount == 0:
+            self.logger.info("balance is zero")
+            return False
+
+        if self.balance.marketValue >= self.max_hold_amount:
+            self.logger.info("hold amount is full")
             return False
         return True
 

@@ -5,8 +5,6 @@ from src.core.logger import Logger
 from src.trader.trader_inf import TraderInf
 import psutil
 
-curDir = os.getcwd()
-
 
 def is_application_running(app_name):
     for proc in psutil.process_iter(['pid', 'name']):
@@ -34,6 +32,9 @@ class RealTrader(TraderInf):
     def __init__(self):
         self.app_name = "jy"
         self.logger = Logger.get_logger("real_trader")
+        self.curDir = os.path.dirname(__file__)
+        self.scriptDir = os.path.join(
+            self.curDir, "autoscpt", "real")
         self.login()
 
     def login(self):
@@ -42,7 +43,7 @@ class RealTrader(TraderInf):
                 self.logger.info("already login")
                 return True
             loginStatus = os.system(
-                f"""osascript {curDir}/trader/autoscpt/real/fy_login.applescript""")
+                f"""osascript {self.scriptDir}/fy_login.applescript""")
             self.logger.info(f"loginStatus: {loginStatus}")
             return loginStatus
         except Exception as e:
@@ -54,9 +55,9 @@ class RealTrader(TraderInf):
             self.login()
             if is_application_running(self.app_name):
                 self.logger.info(
-                    f"""{curDir}/trader/autoscpt/real/fy_balance_rr.applescript""")
+                    f"""{self.scriptDir}/fy_balance_rr.applescript""")
                 result = subprocess.run(
-                    ['osascript', f"""{curDir}/trader/autoscpt/real/fy_balance_rr.applescript"""], text=True, capture_output=True)
+                    ['osascript', f"""{self.scriptDir}/fy_balance_rr.applescript"""], text=True, capture_output=True)
                 km_output = result.stdout.strip()
                 return km_output
         except Exception as e:
@@ -73,7 +74,7 @@ class RealTrader(TraderInf):
                 return
             if is_application_running(self.app_name):
                 return os.system(
-                    f"""osascript {curDir}/trader/autoscpt/real/fy_buy_rr.applescript {code} {num}""")
+                    f"""osascript {self.scriptDir}/fy_buy_rr.applescript {code} {num}""")
         except Exception as e:
             self.logger.error(f"buy error: {e}")
             return False
@@ -85,7 +86,7 @@ class RealTrader(TraderInf):
                 return
             if is_application_running(self.app_name):
                 return os.system(
-                    f"""osascript {curDir}/trader/autoscpt/real/fy_sell_all_rr.applescript {code}""")
+                    f"""osascript {self.scriptDir}/fy_sell_all_rr.applescript {code}""")
         except Exception as e:
             self.logger.error(f"sell_all error: {e}")
 
@@ -96,7 +97,7 @@ class RealTrader(TraderInf):
                 return
             if is_application_running(self.app_name):
                 return os.system(
-                    f"""osascript {curDir}/trader/autoscpt/real/fy_sell_rr.applescript {code} {num}""")
+                    f"""osascript {self.scriptDir}/fy_sell_rr.applescript {code} {num}""")
         except Exception as e:
             self.logger.error(f"sell error: {e}")
             return False
@@ -108,9 +109,9 @@ class RealTrader(TraderInf):
                 return
             if is_application_running(self.app_name):
                 self.logger.info(
-                    f"""{curDir}/trader/autoscpt/real/fy_hold_rr.applescript""")
+                    f"""{self.scriptDir}/fy_hold_rr.applescript""")
                 result = subprocess.run(
-                    ['osascript', f"""{curDir}/trader/autoscpt/real/fy_hold_rr.applescript"""], text=True, capture_output=True)
+                    ['osascript', f"""{self.scriptDir}/fy_hold_rr.applescript"""], text=True, capture_output=True)
                 km_output = result.stdout.strip()
                 return km_output
         except Exception as e:

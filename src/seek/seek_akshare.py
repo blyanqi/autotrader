@@ -27,6 +27,16 @@ class Seek:
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", index=False)
         self.logger.info("-----------------正在获取实时数据 done -------------------")
 
+    def snapshot_real_data(self, type):
+        '''快照数据
+        沪深京A股行情
+        '''
+        self.logger.info("-----------------正在获取快照数据-------------------")
+        df = ak.stock_zh_a_spot_em()
+        df.to_csv(
+            f"{self.currentDir}/../data/snapshot_real_data{self.get_today()}_{type}.csv", index=False)
+        self.logger.info("-----------------正在获取快照数据 done -------------------")
+
     def real_data_with_sh(self):
         '''实时数据
         沪A股行情
