@@ -16,15 +16,15 @@ task:
 policy:
   - type:
     name: top_volumerate
-    desc: "根据量比过滤，涨幅在一定区间类的个股。依据是高量比意味着交易量大。"
+    desc: "根据量比过滤出涨幅在一定区间类的个股。依据是高量比意味着交易量大。"
     time_zone:
     - item: first
       start: "9:25"
       end: "9:35"
-      volumerate: 15
+      volumerate: 10
       turnover: 10
       min_rate: 2
-      max_rate: 5
+      max_rate: 6
       day60rate: 55
     - item: second
       start: "9:36"
@@ -51,9 +51,9 @@ policy:
 trader:
   is_trader: true # 是否交易
   amount: 10000
-  holdtake: 6 # 当日持有股票
+  holdtake: 3 # 当日持有股票
   bottle: 5   # 每次买入份额
-  max_holdtake: 10  # 当日最大持有股票
-  max_hold_amount: 30000
+  max_holdtake: 6  # 当日最大持有股票
+  max_hold_amount: 50000
   ban_trader_failed_count: 3 # 禁止交易的失败次数
   

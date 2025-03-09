@@ -13,6 +13,8 @@ class Policy():
             "config", "")
         self.filter = filter
         self.logger = Logger.get_logger("policy")
+        # self.filterMethod = self.filter.filter_with_volumerate
+        self.filterMethod = self.filter.filter_with_volumerate_of_before_day
 
     def str_to_time(self, timeStr):
         return datetime.datetime.strptime(timeStr, "%H:%M").time()
@@ -82,35 +84,35 @@ class Policy():
             self.logger.info(f'''volumerate: {p["first"]["volumerate"]}''')
             self.logger.info(f'''day60rate: {p["first"]["day60rate"]}''')
             self.logger.info(f'''filename: {filename}''')
-            self.filter.filter_with_volumerate(p["first"]["min_rate"],
-                                               p["first"]["max_rate"],
-                                               p["first"]["volumerate"],
-                                               p["first"]["day60rate"],
-                                               filename)
+            self.filterMethod(p["first"]["min_rate"],
+                              p["first"]["max_rate"],
+                              p["first"]["volumerate"],
+                              p["first"]["day60rate"],
+                              filename)
             return
         if self.get_time() <= p["second"]["end"]:
             filename += "_"+p["second"]["end"].strftime("%H:%M")
 
-            self.filter.filter_with_volumerate(p["second"]["min_rate"],
-                                               p["second"]["max_rate"],
-                                               p["second"]["volumerate"],
-                                               p["second"]["day60rate"],
-                                               filename)
+            self.filterMethod(p["second"]["min_rate"],
+                              p["second"]["max_rate"],
+                              p["second"]["volumerate"],
+                              p["second"]["day60rate"],
+                              filename)
             return
         if self.get_time() <= p["third"]["end"]:
             filename += "_"+p["third"]["end"].strftime("%H:%M")
-            self.filter.filter_with_volumerate(p["third"]["min_rate"],
-                                               p["third"]["max_rate"],
-                                               p["third"]["volumerate"],
-                                               p["third"]["day60rate"],
-                                               filename)
+            self.filterMethod(p["third"]["min_rate"],
+                              p["third"]["max_rate"],
+                              p["third"]["volumerate"],
+                              p["third"]["day60rate"],
+                              filename)
         else:
             filename += "_"+"other"
-            self.filter.filter_with_volumerate(p["other"]["min_rate"],
-                                               p["other"]["max_rate"],
-                                               p["other"]["volumerate"],
-                                               p["other"]["day60rate"],
-                                               filename)
+            self.filterMethod(p["other"]["min_rate"],
+                              p["other"]["max_rate"],
+                              p["other"]["volumerate"],
+                              p["other"]["day60rate"],
+                              filename)
 
 
 if __name__ == "__main__":

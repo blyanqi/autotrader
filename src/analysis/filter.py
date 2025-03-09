@@ -14,6 +14,29 @@ class Filter:
         today = datetime.datetime.now().strftime("%Y%m%d")
         return today
 
+    def get_trader_day(self):
+        today = datetime.date.today()
+        weekday = today.weekday()
+        if weekday == 5:
+            return datetime.date.today() - datetime.timedelta(days=1)
+        elif weekday == 6:
+            return datetime.date.today() - datetime.timedelta(days=2)
+        else:
+            return today
+
+    def get_trader_before_day(self):
+        resDay = ""
+        today = datetime.date.today()
+        weekday = today.weekday()
+        if weekday == 5:
+            resDay = datetime.date.today() - datetime.timedelta(days=2)
+        elif weekday == 6:
+            resDay = datetime.date.today() - datetime.timedelta(days=3)
+        else:
+            resDay = today - datetime.timedelta(days=1)
+        resDay = resDay.strftime("%Y%m%d")
+        return resDay
+
     def get_yestoday(self):
         yestoday = (datetime.datetime.now() -
                     datetime.timedelta(days=1)).strftime("%Y%m%d")
@@ -47,8 +70,37 @@ class Filter:
             f"{self.currentDir}/../data/{filename}.csv", index=False)
 
     def is_valid(self, row):
-        # 如果出发地和目的地相同，则返回 False
         return row['最新价'] > row['今开']
+
+    def filter_with_volumerate_of_before_day(self, min_rate, max_rate, volumerate, day60rate, filename):
+        self.logger.info(
+            "-----------------filter_with_volumerate-------------------")
+        self.logger.info(f'''min_rate: {min_rate}''')
+        self.logger.info(f'''max_rate: {max_rate}''')
+        self.logger.info(f'''volumerate: {volumerate}''')
+        self.logger.info(f'''day60rate: {day60rate}''')
+        self.logger.info(f'''filename: {filename}''')
+        fdf = pd.DataFrame()
+        df_before = pd.read_csv(
+            f"{self.currentDir}/../data/real_data{self.get_trader_before_day()}.csv", dtype={"代码": str})
+        df = pd.read_csv(
+            f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
+        df_before = df_before[["最高", "代码"]]
+        fdf = df[
+            (df["涨跌幅"] > min_rate)
+            & (df["涨跌幅"] < max_rate)
+            & (df["量比"] > volumerate)
+            & (df["60日涨跌幅"] <= day60rate)
+            & (df['最新价'] > df['今开'])
+        ]
+        dfm = pd.merge(fdf, df_before, on="代码")
+        fdf = dfm[dfm["最高_y"] < dfm["最新价"]]
+        if fdf.empty:
+            return
+        fdf = fdf.sort_values(by="量比", ascending=False)
+        fdf.to_csv(
+            f"{self.currentDir}/../data/{filename}.csv", index=False)
+        self.logger.info("-----------------写入分析数据 done -------------------")
 
     def filter_with_volumerate(self, min_rate, max_rate, volumerate, day60rate, filename):
         self.logger.info(
@@ -61,9 +113,14 @@ class Filter:
         fdf = pd.DataFrame()
         df = pd.read_csv(
             f"{self.currentDir}/../data/real_data{self.get_today()}.csv", dtype={"代码": str})
-        fdf = df[(df["涨跌幅"] > min_rate) & (df["涨跌幅"] < max_rate)
-                 & (df["量比"] > volumerate) & (df["60日涨跌幅"] <= day60rate)]
-        fdf = fdf[fdf.apply(self.is_valid, axis=1)]
+        fdf = df[
+            (df["涨跌幅"] > min_rate)
+            & (df["涨跌幅"] < max_rate)
+            & (df["量比"] > volumerate)
+            & (df["60日涨跌幅"] <= day60rate)
+            & (df['最新价'] > df['今开'])
+        ]
+        # fdf = fdf[fdf.apply(self.is_valid, axis=1)]
         if fdf.empty:
             return
         fdf = fdf.sort_values(by="量比", ascending=False)
@@ -91,5 +148,5 @@ class Filter:
 
 if __name__ == '__main__':
     filter = Filter()
-    # print(filter.get_yestoday())
+    print(filter.get_trader_day())
     # print(filter.filter_data(filter.get_today()))

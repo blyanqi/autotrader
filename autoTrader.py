@@ -58,12 +58,6 @@ def rate_volumnrate_policy_day(isTrader=False):
     task.start_task()
 
 
-def test_trader():
-    trader = container.resolve("realTrader")
-    traderExec = container.resolve("traderExec", trader)
-    traderExec.sell_all()
-
-
 if __name__ == '__main__':
     rate_volumnrate_policy_day(True)
     # test_trader()

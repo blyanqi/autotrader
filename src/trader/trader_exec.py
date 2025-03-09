@@ -28,6 +28,7 @@ class TraderExec:
         self.max_holdtake = config.get("trader.max_holdtake")
         self.max_hold_amount = config.get("trader.max_hold_amount")
         # 运行时
+        self._trade_time = 0
         self._buyList = {}
         self._traderFailedCount = 0
         self.balance = Balance()
@@ -126,9 +127,12 @@ class TraderExec:
             f"{self.currentDir}/../data/{policyName}{self.get_today()}_{self.get_timezone()}.csv", dtype={"代码": str})
         if df.empty:
             return
+        # 只获取其中的3只
         traderData = df.head(self._holdtake).to_dict(orient='records')
         for row in traderData:
             code = row["代码"]
+            if self._trade_time >= self._holdtake:
+                continue
             if code in self._buyList:
                 continue
             if self._traderFailedCount >= self._banTraderFailedCount:
@@ -141,6 +145,7 @@ class TraderExec:
                 continue
             self.logger.info(f"trader: {code}, {price}, {num}")
             self._trader.buy(code, num)
+            self._trade_time += 1
             self.add_buy_list({"code": code, "price": price, "num": num})
 
     def get_hold(self):
@@ -162,6 +167,17 @@ class TraderExec:
         self.logger.debug(f"{stockList}")
         for stock in stockList:
             self._trader.sell_all(stock)
+
+    def sell_all_rate(self, rate):
+        holdStock = self.get_hold()
+        self.logger.info(f"hold stock: {holdStock}")
+        stockList = holdStock[0]
+        stockRate = holdStock[1]
+        self.logger.debug(f"{stockList} {stockRate}")
+        for index in range(len(stockList)):
+            self.logger.info(f"{stockList[index]} {stockRate[index]}")
+            if float(stockRate[index]) >= rate:
+                self._trader.sell_all(stockList[index])
 
     def sell_that(self):
         holdStock = self.get_hold()
