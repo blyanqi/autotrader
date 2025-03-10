@@ -41,6 +41,9 @@ https://jinja.palletsprojects.com/en/stable/templates/
 ### pyyaml
 `pip install pyyaml`
 
+### tesseract
+`pip install pytesseract`
+
 
 ## 目录结构
 ```sh

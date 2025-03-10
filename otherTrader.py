@@ -26,6 +26,6 @@ def sell_all_rate(rate):
 
 
 if __name__ == '__main__':
-    # sell_all_trader()
-    sell_all_rate(1)
+    sell_all_trader()
+    # sell_all_rate(1)
     pass

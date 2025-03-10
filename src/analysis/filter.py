@@ -32,6 +32,8 @@ class Filter:
             resDay = datetime.date.today() - datetime.timedelta(days=2)
         elif weekday == 6:
             resDay = datetime.date.today() - datetime.timedelta(days=3)
+        elif weekday == 0:
+            resDay = datetime.date.today() - datetime.timedelta(days=3)
         else:
             resDay = today - datetime.timedelta(days=1)
         resDay = resDay.strftime("%Y%m%d")

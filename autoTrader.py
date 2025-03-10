@@ -60,5 +60,4 @@ def rate_volumnrate_policy_day(isTrader=False):
 
 if __name__ == '__main__':
     rate_volumnrate_policy_day(True)
-    # test_trader()
     pass
